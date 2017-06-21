@@ -6,26 +6,30 @@ var searchTerm = "";
 var resultNum = 0;
 var url = "";
 
-var getGIFvalue = $("#userSearchTerm").val(""); //.val vs .attr??
-var defaultButtons = ["ned flanders squid", "popcorn junkie", "best dunks", "lord"];
+var getGIFvalue = $("#userSearchTerm").val(""); //.val vs .attr? does it matter for only 1 listed element?
+var defaultButtons = ["flanders squid", "popcorn junkie", "best dunks", "overlord"];
 console.log(defaultButtons);
 
 //iterate through defaultButtons using JQuery
 //nb: forEach method needs to utilize the es5-shim library for IE 8 & earlier versions
 $.each(defaultButtons, function(index , value) {
-	//create a variable for the new button div in the DOM  
-	var button = $("<button>");
+	//create a variable for the new buttons in the DOM  
+	var getGIFbuttons = $("<button>");
 	//add a class identifier
-	button.addClass("buttonClass");
+	getGIFbuttons.addClass("buttonClass");
+	//add data attribute named getGIF-[defaultButtons]
+	getGIFbuttons.attr("id", "data-getGIF" + defaultButtons[index]);
 	//grab the text of each defaultButtons index 
-	button.html(defaultButtons[index]); 
+	getGIFbuttons.html(defaultButtons[index]); 
 	//prepend the new button div to #defaultButtons
-	$("#defaultButtons").prepend(button);
+	$("#defaultButtons").prepend(getGIFbuttons);
 	console.log(index, value);
 });
 
 //new function for the api call
 function apiCall() {
+	//assign the GIF buttons data- name as a search term
+	var currentButton = $(event.currentTarget).data("name");
 	//redefine url variable to include the getGIFvalue & api key
 	url = ("http://api.giphy.com/v1/gifs/search?q=" + getGIFvalue + "&api_key=" + authkey);
 	console.log(url);
@@ -38,13 +42,6 @@ function apiCall() {
 			var tempGif = json.data[index].images
 			console.log(tempGif);
 			console.log(tempGif.original.url);
-			//redefine desired resultNum to 10
-			var resultNum = 10;
-			//use text from getGIFvalue to request 10 GIFs from url API
-			for (var i = 0; i < resultNum; i++) {
-			//prepend the still image to the new-GIFs div
-			$("#new-GIFs").prepend(tempGif.original_still.url);
-			};
 		});
 	});	
 	//return the apiCall function to be reused when the #add-GIF is clicked
@@ -52,29 +49,44 @@ function apiCall() {
 };
 
 //when the add-GIF button is clicked..
-$("#add-GIF").click(function() {
+$("#add-GIF").click(function(event) {
+	//prevent page from reload during api call
+	event.preventDefault();
 	//if text is entered into userSearchTerm, 
 	while (getGIFvalue === true) {
 		//run the apiCall function
 		apiCall();
-		//create a variable for the new DOM div
+		//create a variable for the new DOM div to hold the new GIF search buttons
 		var newButtons = ("<div>");
+		//.empty the div holding the newButtons
+		newButtons.empty();
+		//.push the new GIFs onto the defaultButtons array
+		newButtons.push(getGIFvalue);
+		//redefine desired resultNum to 10
+		var resultNum = 10;
+		//use text from getGIFvalue to request 10 GIFs from url API
+		for (var i = 0; i < resultNum; i++) {
+			//prepend the still image to the new-GIFs div
+			$("#new-GIFs").prepend(tempGif.original_still.url);
+		};
 		//display images on page
 		newButtons.html(getGIFvalue[index]);
-		//clear the #userSearchTerm text (.empty?)
+		//clear the #userSearchTerm text (could use .empty()? or .val("")?)
 		$("#userSearchTerm").remove("");
 	};
 });
 
-//create an object that includes defaultButtons & newGIFs (value=??)
+//create an object that includes defaultButtons & newGIFs (value=true??)
 var allButtons = {
 	defaultButtons: true,
 	newGIFs: true,
 };
 
 //when allButtons are clicked run a function..
-$.each(allButtons, function() {
+$(document.body).on("click", allButtons, function() {
+	//get the data attribute of the selected GIF
+	var clickedGIF = $(this).attr("data-getGIF");
 	//that will toggle the image from original_still to original when clicked
-	$("#new-GIFs").toggleClass(); 
+	$("#new-GIFs" + clickedGIF).toggleClass(); 
 });
 });
